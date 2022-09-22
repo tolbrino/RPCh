@@ -4,7 +4,7 @@
 import http from "http";
 import { createLogger } from "./utils";
 
-const log = createLogger("entry");
+const { log } = createLogger("entry");
 
 export default (
   port: number,

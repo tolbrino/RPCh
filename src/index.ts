@@ -1,5 +1,5 @@
 import initializeEntryPoint from "./entry";
-import initializeHOPRd from "./hoprd";
+import initializeHOPRd, { decodeIncomingMessage } from "./hoprd";
 import { sendRPC } from "./exit";
 
 const {
@@ -31,6 +31,7 @@ initializeEntryPoint(ENTRY_PORT, (body, res) => {
   );
 });
 
-// hoprd(HOPRD_API_ENDPOINT, HOPRD_API_TOKEN, (body) => {
-//   console.log("from hopr network", body);
-// });
+initializeHOPRd(HOPRD_API_ENDPOINT, HOPRD_API_TOKEN, (body) => {
+  console.log("from hopr network", body);
+  console.log("from hopr network decoded", decodeIncomingMessage(body));
+});

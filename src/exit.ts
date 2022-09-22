@@ -4,7 +4,7 @@
 import fetch from "node-fetch";
 import { createLogger } from "./utils";
 
-const log = createLogger("exit");
+const { log } = createLogger("exit");
 
 export const sendRPC = async (
   providerUrl: string,
