@@ -38,9 +38,9 @@ export const toSegments = (body: string, maxBytes: number): string[] => {
   return res;
 };
 
-export const joinMessages = (segments: string[]): string => {
-  return segments.reduce((result, segment) => {
-    const { body } = deconstructMessage(segment);
+export const recreateBodyFromMessages = (messages: string[]): string => {
+  return messages.reduce((result, message) => {
+    const { body } = deconstructMessage(message);
     return result + body;
   }, "");
 };
