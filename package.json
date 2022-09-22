@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node build/index.js",
     "dev": "ts-node src/index.ts",
-    "build": "rimraf ./build && tsc",
+    "clean": "rm -rf ./build",
+    "build": "tsc",
     "test": "jest"
   },
   "devDependencies": {
