@@ -14,7 +14,7 @@ if (!ENTRY_PORT_STR) {
 }
 const ENTRY_PORT = Number(ENTRY_PORT_STR);
 if (isNaN(ENTRY_PORT)) {
-  throw Error("env variable 'ENTRY_PORT' is not a number");
+  throw Error("env variable 'ENTRY_PORT' not a number");
 }
 if (!HOPRD_API_ENDPOINT) {
   throw Error("env variable 'HOPRD_API_ENDPOINT' not found");
