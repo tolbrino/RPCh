@@ -1,6 +1,10 @@
 import Debug, { type Debugger } from "debug";
 import { utils } from "ethers";
 
+/**
+ * Maximum bytes we should be sending
+ * within the HOPR network.
+ */
 export const MAX_BYTES = 400;
 
 /**
@@ -52,6 +56,14 @@ export const generateRandomId = (): string => {
   return String(Math.floor(Math.random() * 1e6));
 };
 
-export const isExpired = (createdAt: Date, timeout: number): boolean => {
-  return createdAt.valueOf() + timeout < new Date().valueOf();
+/**
+ * Check whether given time has expired.
+ * @returns whether item has expired
+ */
+export const isExpired = (
+  timeout: number,
+  now: Date,
+  createdAt: Date
+): boolean => {
+  return createdAt.valueOf() >= now.valueOf() + timeout;
 };

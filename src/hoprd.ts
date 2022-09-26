@@ -38,6 +38,12 @@ export const fetchNodePeerId = async (httpURL: URL): Promise<string> => {
     .then((res) => res.hopr);
 };
 
+/**
+ * Send a segment to a HOPRd node.
+ * @param httpURL
+ * @param segment
+ * @param destination
+ */
 export const sendSegmentToExitRelay = async (
   httpURL: URL,
   segment: Segment,

@@ -136,8 +136,10 @@ export class Manager {
   }
 
   public removeExpired(): void {
+    const now = new Date();
+
     for (const [id, entry] of this.requests.entries()) {
-      if (isExpired(entry.createdAt, this.timeout)) {
+      if (isExpired(this.timeout, now, entry.createdAt)) {
         const message = this.messages.get(id);
 
         if (!message) {
@@ -155,7 +157,7 @@ export class Manager {
     }
 
     for (const [id, entry] of this.segments.entries()) {
-      if (isExpired(entry.receivedAt, this.timeout)) {
+      if (isExpired(this.timeout, now, entry.receivedAt)) {
         log("dropping expired partial segments");
         this.segments.delete(id);
       }
