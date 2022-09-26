@@ -1,11 +1,17 @@
-import initializeEntryPoint from "./entry";
-import initializeHOPRd, { decodeIncomingMessage } from "./hoprd";
-import { sendRPC } from "./exit";
+import { createEntryServer } from "./entry";
+import {
+  createHOPRdListener,
+  fetchNodePeerId,
+  sendSegmentToExitRelay,
+} from "./hoprd";
+import { sendRpcToProvider } from "./exit";
+import { Manager } from "./manager";
 
 const {
   ENTRY_PORT: ENTRY_PORT_STR,
   HOPRD_API_ENDPOINT,
   HOPRD_API_TOKEN,
+  RESPONSE_TIMEOUT_STR = "5000",
 } = process.env;
 
 // validate environment variables
@@ -19,19 +25,55 @@ if (isNaN(ENTRY_PORT)) {
 if (!HOPRD_API_ENDPOINT) {
   throw Error("env variable 'HOPRD_API_ENDPOINT' not found");
 }
+const RESPONSE_TIMEOUT = Number(RESPONSE_TIMEOUT_STR);
+if (isNaN(RESPONSE_TIMEOUT)) {
+  throw Error("env variable 'RESPONSE_TIMEOUT' not a number");
+}
 
-initializeEntryPoint(ENTRY_PORT, (body, res) => {
-  sendRPC("https://provider-proxy.hoprnet.workers.dev/xdai_mainnet", body).then(
-    (result) => {
-      res.setHeader("Content-Type", "application/json");
-      res.statusCode = 200;
-      res.write(result);
-      res.end();
+// create reusable endpoint URLs
+const { HOPRD_API_HTTP_URL, HOPRD_API_WS_URL } = ((): {
+  HOPRD_API_HTTP_URL: URL;
+  HOPRD_API_WS_URL: URL;
+} => {
+  const httpURL = new URL("/", HOPRD_API_ENDPOINT);
+  const wsURL = new URL("/", HOPRD_API_ENDPOINT);
+  wsURL.protocol = wsURL.protocol === "https:" ? "wss" : "ws";
+
+  if (HOPRD_API_TOKEN) {
+    httpURL.search = `?apiToken=${HOPRD_API_TOKEN}`;
+    wsURL.search = `?apiToken=${HOPRD_API_TOKEN}`;
+  }
+
+  return {
+    HOPRD_API_HTTP_URL: httpURL,
+    HOPRD_API_WS_URL: wsURL,
+  };
+})();
+
+const start = async () => {
+  // TODO: retry and fail to start
+  const myPeerId = await fetchNodePeerId(HOPRD_API_HTTP_URL);
+  const manager = new Manager(
+    RESPONSE_TIMEOUT,
+    myPeerId,
+    (segment, destination) => {
+      return sendSegmentToExitRelay(HOPRD_API_HTTP_URL, segment, destination);
+    },
+    (message, provider) => {
+      return sendRpcToProvider(message, provider);
     }
   );
-});
 
-initializeHOPRd(HOPRD_API_ENDPOINT, HOPRD_API_TOKEN, (body) => {
-  console.log("from hopr network", body);
-  console.log("from hopr network decoded", decodeIncomingMessage(body));
-});
+  createEntryServer(
+    ENTRY_PORT,
+    myPeerId,
+    (message, responseObj, exitPeerId) => {
+      manager.createRequest(message, responseObj, exitPeerId || "");
+    }
+  );
+  createHOPRdListener(HOPRD_API_WS_URL, (segment) => {
+    manager.onReceivedSegment(segment);
+  });
+};
+
+start();
