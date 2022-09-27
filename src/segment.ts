@@ -18,8 +18,8 @@ export class Segment {
 
     return new Segment(
       msgId,
-      segment_nr,
-      nr_of_segments,
+      Number(segment_nr),
+      Number(nr_of_segments),
       origin,
       provider,
       body.join("|")
@@ -28,7 +28,7 @@ export class Segment {
 
   public static isValidSegmentStr(str: string): boolean {
     const segment = Segment.fromString(str);
-    return Object.values(segment).every((val) => !!val);
+    return Object.values(segment).every((val) => typeof val !== "undefined");
   }
 
   public static areSegmentsComplete(segments: Segment[]): boolean {

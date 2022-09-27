@@ -22,5 +22,10 @@ export const sendRpcToProvider = async (
   return fetch(provider, {
     method: "POST",
     body: message.body,
-  }).then((res) => res.text());
+  }).then(async (res) => {
+    const response = await res.text();
+    log("response from provider", response);
+
+    return response;
+  });
 };

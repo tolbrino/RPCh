@@ -5,7 +5,7 @@ import { utils } from "ethers";
  * Maximum bytes we should be sending
  * within the HOPR network.
  */
-export const MAX_BYTES = 400;
+export const MAX_BYTES = 250;
 
 /**
  * Sugar fuction for creating consistent loggers.
@@ -65,5 +65,23 @@ export const isExpired = (
   now: Date,
   createdAt: Date
 ): boolean => {
-  return createdAt.valueOf() >= now.valueOf() + timeout;
+  return createdAt.valueOf() + timeout < now.valueOf();
+};
+
+export const createApiUrl = (
+  protocol: "http" | "ws",
+  endpoint: string,
+  path: string,
+  token?: string
+): string => {
+  const url = new URL(path, endpoint);
+
+  if (protocol === "ws") {
+    url.protocol = url.protocol === "https:" ? "wss" : "ws";
+  }
+  if (token) {
+    url.search = `?apiToken=${token}`;
+  }
+
+  return url.toString();
 };

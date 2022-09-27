@@ -10,7 +10,8 @@ const { log } = createLogger("entry");
 
 /**
  * Creates the entry server which accepts RPC requests from clients.
- * @param port
+ * @param port port to run entry server on
+ * @param myPeerId
  * @param onMessage called everytime a new RPC request is received
  * @returns http server
  */
@@ -22,7 +23,7 @@ export const createEntryServer = (
     responseObj: ServerResponse,
     exitPeerId?: string
   ) => void
-): http.Server => {
+): (() => void) => {
   const server = http.createServer((req, res) => {
     req.on("data", (data) => {
       let exitProvider: string | undefined;
@@ -48,7 +49,7 @@ export const createEntryServer = (
       }
 
       const body = data.toString();
-      log("received data from client", body);
+      log("received data from client", body, exitProvider, exitPeerId);
 
       onMessage(
         Message.fromBody(myPeerId, exitProvider, body),
@@ -62,5 +63,7 @@ export const createEntryServer = (
     console.log("HORP RPC Relay entry is listening at port", port);
   });
 
-  return server;
+  return () => {
+    server.close();
+  };
 };

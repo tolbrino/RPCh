@@ -39,11 +39,11 @@ export class Manager {
   constructor(
     private timeout: number,
     private myPeerId: string,
-    private sendSegmentToExitRelay: (
+    private sendToHOPRd: (
       segment: Segment,
       destination: string
     ) => Promise<void>,
-    private sendRpcToProvider: (
+    private sendToProvider: (
       message: Message,
       provider: string
     ) => Promise<string>
@@ -53,12 +53,8 @@ export class Manager {
     message: Message,
     destination: string
   ): Promise<void> {
-    this.messages.set(message.id, {
-      message,
-      destination,
-    });
     for (const segment of message.toSegments()) {
-      await this.sendSegmentToExitRelay(segment, destination);
+      await this.sendToHOPRd(segment, destination);
     }
   }
 
@@ -67,6 +63,10 @@ export class Manager {
     responseObj: ServerResponse,
     destination: string
   ): Promise<void> {
+    this.messages.set(message.id, {
+      message,
+      destination,
+    });
     this.requests.set(message.id, {
       createdAt: new Date(),
       responseObj,
@@ -74,7 +74,7 @@ export class Manager {
     await this.sendMessage(message, destination);
   }
 
-  public handleReceivedResponseMessage(responseMessage: Message): void {
+  public handleReceivedMessageResponse(responseMessage: Message): void {
     const request = this.requests.get(responseMessage.id);
     if (!request) {
       logError("matching request not found", responseMessage.id);
@@ -95,15 +95,15 @@ export class Manager {
     log("responded to %s with %s", requestMessage.body, responseMessage.body);
   }
 
-  public async handleReceivedRequestMessage(message: Message): Promise<void> {
-    const response = await this.sendRpcToProvider(message, message.provider);
+  public async handleReceivedMessageRequest(message: Message): Promise<void> {
+    const response = await this.sendToProvider(message, message.provider);
     await this.sendMessage(
       message.createResponseMessage(this.myPeerId, response),
       message.origin
     );
   }
 
-  public onReceivedSegment(segment: Segment): void {
+  public onSegmentReceived(segment: Segment): void {
     // get segment entry with matching msgId, or create a new one
     const segmentEntry = this.segments.get(segment.msgId) || {
       segments: [] as Segment[],
@@ -123,22 +123,28 @@ export class Manager {
 
     segmentEntry.segments = [...segmentEntry.segments, segment];
     this.segments.set(segment.msgId, segmentEntry);
+    log("stored new segment");
 
     if (Segment.areSegmentsComplete(segmentEntry.segments)) {
       const message = Message.fromSegments(segmentEntry.segments);
-      const isResponse = message.getMessageType(this.myPeerId) === "res";
+      const isResponse = message.origin === this.myPeerId;
 
       // this is a response to a message we have sent
-      if (isResponse) this.handleReceivedResponseMessage(message);
+      if (isResponse) this.handleReceivedMessageResponse(message);
       // this is a new request we need to fulfill
-      else this.handleReceivedRequestMessage(message);
+      else this.handleReceivedMessageRequest(message);
     }
   }
 
   public removeExpired(): void {
     const now = new Date();
 
+    log("messages", this.messages.size);
+    log("requests", this.requests.size);
+    log("segments", this.segments.size);
+
     for (const [id, entry] of this.requests.entries()) {
+      log(isExpired(this.timeout, now, entry.createdAt));
       if (isExpired(this.timeout, now, entry.createdAt)) {
         const message = this.messages.get(id);
 

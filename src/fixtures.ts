@@ -10,3 +10,5 @@ export const PEER_ID_A =
 export const PEER_ID_B =
   "16Uiu2HAmM9KAPaXA4eAz58Q7Eb3LEkDvLarU4utkyL6vM5mwDeEK";
 export const PROVIDER = "https://primary.gnosis-chain.rpc.hoprtech.net";
+
+export const SEGMENT = `737866|0|1|16Uiu2HAm1mzWMJ2crQ5TYddV3QexPuV4t8PBRFrMimUUnrQFM5oV|https://primary.gnosis-chain.rpc.hoprtech.net|{"id":6228236648510404,"jsonrpc":"2.0","method":"net_version","params":[]}`;

@@ -51,11 +51,7 @@ export class Message {
   }
 
   public createResponseMessage(myPeerId: string, body: string): Message {
-    return new Message(this.id, myPeerId, "", body);
-  }
-
-  public getMessageType(myPeerId: string): "req" | "res" {
-    return this.origin === myPeerId ? "req" : "res";
+    return new Message(this.id, this.origin, this.provider, body);
   }
 
   public toSegments(): Segment[] {
