@@ -31,24 +31,39 @@ export const fetchPeerId = async (
   apiEndpoint: string,
   apiToken?: string
 ): Promise<string> => {
-  const url = createApiUrl(
+  const [url, headers] = createApiUrl(
     "http",
     apiEndpoint,
     "/api/v2/account/addresses",
     apiToken
   );
 
-  let headers = {
-    "Content-Type": "application/json",
-    "Accept-Content": "application/json",
-  } as any;
-  if (apiToken) {
-    headers["Authorization"] = "Basic " + btoa(apiToken);
-  }
-
   return fetch(url, { headers })
     .then((res) => res.json())
     .then((res) => res.hopr);
+};
+
+/**
+ * Fetch peers which can be used as exit nodes.
+ * @warn Assumes all peers run a hopr-rpc-relay node.
+ * @param apiEndpoint
+ * @param apiToken
+ * @returns
+ */
+export const fetchPeers = async (
+  apiEndpoint: string,
+  apiToken?: string
+): Promise<string[]> => {
+  const [url, headers] = createApiUrl(
+    "http",
+    apiEndpoint,
+    "/api/v2/node/peers",
+    apiToken
+  );
+
+  return fetch(url, { headers })
+    .then((res) => res.json())
+    .then((res) => res.connected.map((o: any) => o.peerId));
 };
 
 /**
@@ -60,15 +75,12 @@ export const sendMessage = async (
   message: string,
   destination: string
 ): Promise<void> => {
-  const url = createApiUrl("http", apiEndpoint, "/api/v2/messages", apiToken);
-
-  let headers = {
-    "Content-Type": "application/json",
-    "Accept-Content": "application/json",
-  } as any;
-  if (apiToken) {
-    headers["Authorization"] = "Basic " + btoa(apiToken);
-  }
+  const [url, headers] = createApiUrl(
+    "http",
+    apiEndpoint,
+    "/api/v2/messages",
+    apiToken
+  );
 
   const response = await fetch(url, {
     method: "POST",
@@ -93,7 +105,7 @@ export const createListener = (
   apiToken: string | undefined,
   onMessage: (message: string) => void
 ): (() => void) => {
-  const url = createApiUrl(
+  const [url] = createApiUrl(
     "ws",
     apiEndpoint,
     "/api/v2/messages/websocket",

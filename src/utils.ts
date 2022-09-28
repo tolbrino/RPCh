@@ -81,18 +81,26 @@ export const isExpired = (
  */
 export const createApiUrl = (
   protocol: "http" | "ws",
-  endpoint: string,
+  apiEndpoint: string,
   path: string,
-  token?: string
-): string => {
-  const url = new URL(path, endpoint);
+  apiToken?: string
+): [string, any] => {
+  const url = new URL(path, apiEndpoint);
 
   if (protocol === "ws") {
     url.protocol = url.protocol === "https:" ? "wss" : "ws";
   }
-  if (token) {
-    url.search = `?apiToken=${token}`;
+  if (apiToken) {
+    url.search = `?apiToken=${apiToken}`;
   }
 
-  return url.toString();
+  let headers = {
+    "Content-Type": "application/json",
+    "Accept-Content": "application/json",
+  } as any;
+  if (apiToken) {
+    headers["Authorization"] = "Basic " + btoa(apiToken);
+  }
+
+  return [url.toString(), headers];
 };

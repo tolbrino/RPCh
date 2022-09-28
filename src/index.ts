@@ -40,6 +40,8 @@ const start = async (ops: {
   // TODO: retry and fail to start
   const myPeerId = await hoprd.fetchPeerId(ops.apiEndpoint, ops.apiToken);
   log("fetched PeerId", myPeerId);
+  const exitPeerIds = await hoprd.fetchPeers(ops.apiEndpoint, ops.apiToken);
+  log("found %i eligible exit peer ids", exitPeerIds.length);
   const manager = new Manager(
     ops.timeout,
     (segment, destination) => {
@@ -62,7 +64,8 @@ const start = async (ops: {
       manager.createRequest(
         request,
         responseObj,
-        "16Uiu2HAm8avoHzzZZRpiJNjAFbkVWehKzpWPcVkvH1RrieCkWsDS"
+        exitPeerId ||
+          exitPeerIds[Math.floor(Math.random() * exitPeerIds.length)]
       );
     }
   );
