@@ -23,12 +23,10 @@ services:
     volumes:
       - pluto-data:/tmp
     ports:
-      # exposing hoprd RPC ports to make them usable from other services
-      - "13301-13305"
       # mapping admin and api ports to localhost for app developers to access
       # the admin UI more easily
-      - "9011-9015:13301-13305"
-      - "9021-9025:19091-19095"
+      - "13301-13305:13301-13305"
+      - "19091-19095:19091-19095"
   relay-1:
     <<: *shared-config
     <<: *relay
