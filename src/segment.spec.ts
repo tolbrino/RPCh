@@ -1,33 +1,21 @@
 import assert from "assert";
-import { Segment } from "./segment";
-import { RPC_REQ_SMALL, PEER_ID_A as ORIGIN, PROVIDER } from "./fixtures";
+import Segment from "./segment";
 
-describe("test segment class", function () {
+const BODY = "body";
+
+describe("test Segment class", function () {
   it("should create segment", function () {
-    const segment = new Segment(
-      "someid",
-      0,
-      1,
-      ORIGIN,
-      PROVIDER,
-      RPC_REQ_SMALL
-    );
+    const segment = new Segment("someid", 0, 1, BODY);
     assert.equal(segment.msgId, "someid");
-    assert.equal(segment.segment_nr, 0);
-    assert.equal(segment.nr_of_segments, 1);
-    assert.equal(segment.body, RPC_REQ_SMALL);
-    assert.equal(segment.origin, ORIGIN);
-    assert.equal(segment.provider, PROVIDER);
+    assert.equal(segment.segmentNr, 0);
+    assert.equal(segment.segmentsLength, 1);
+    assert.equal(segment.body, BODY);
   });
   it("should create segment from string", function () {
-    const segment = Segment.fromString(
-      `someid|0|1|${ORIGIN}|${PROVIDER}|${RPC_REQ_SMALL}`
-    );
+    const segment = Segment.fromString(`someid|0|1|${BODY}`);
     assert.equal(segment.msgId, "someid");
-    assert.equal(segment.segment_nr, 0);
-    assert.equal(segment.nr_of_segments, 1);
-    assert.equal(segment.body, RPC_REQ_SMALL);
-    assert.equal(segment.origin, ORIGIN);
-    assert.equal(segment.provider, PROVIDER);
+    assert.equal(segment.segmentNr, 0);
+    assert.equal(segment.segmentsLength, 1);
+    assert.equal(segment.body, BODY);
   });
 });

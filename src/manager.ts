@@ -1,6 +1,8 @@
 import type { ServerResponse } from "http";
-import { Message } from "./message";
-import { Segment } from "./segment";
+import Request from "./request";
+import Response from "./response";
+import Message from "./message";
+import Segment, { validateSegments } from "./segment";
 import { createLogger, isExpired } from "./utils";
 
 const { log, logError } = createLogger("manager");
@@ -9,21 +11,13 @@ const { log, logError } = createLogger("manager");
  * Stores pending requests and partial segments.
  */
 export class Manager {
-  // messages we are sending out, keyed by message.id
-  private messages = new Map<
-    string,
-    {
-      message: Message;
-      destination: string;
-    }
-  >();
-
   // requests we have made to another relay, keyed by message.id
   private requests = new Map<
     string,
     {
-      createdAt: Date;
+      request: Request;
       responseObj: ServerResponse;
+      createdAt: Date;
     }
   >();
 
@@ -38,13 +32,12 @@ export class Manager {
 
   constructor(
     private timeout: number,
-    private myPeerId: string,
-    private sendToHOPRd: (
+    private sendMessageToHOPRd: (
       segment: Segment,
       destination: string
     ) => Promise<void>,
-    private sendToProvider: (
-      message: Message,
+    private sendRequestToProvider: (
+      request: Request,
       provider: string
     ) => Promise<string>
   ) {}
@@ -54,52 +47,45 @@ export class Manager {
     destination: string
   ): Promise<void> {
     for (const segment of message.toSegments()) {
-      await this.sendToHOPRd(segment, destination);
+      await this.sendMessageToHOPRd(segment, destination);
     }
   }
 
   public async createRequest(
-    message: Message,
+    request: Request,
     responseObj: ServerResponse,
     destination: string
   ): Promise<void> {
-    this.messages.set(message.id, {
-      message,
-      destination,
-    });
-    this.requests.set(message.id, {
+    this.requests.set(request.id, {
+      request,
       createdAt: new Date(),
       responseObj,
     });
-    await this.sendMessage(message, destination);
+    await this.sendMessage(request.toMessage(), destination);
   }
 
-  public handleReceivedMessageResponse(responseMessage: Message): void {
-    const request = this.requests.get(responseMessage.id);
+  public handleReceivedMessageResponse(response: Response): void {
+    const request = this.requests.get(response.id);
     if (!request) {
-      logError("matching request not found", responseMessage.id);
-      return;
-    }
-    const requestMessage = this.messages.get(responseMessage.id)?.message;
-    if (!requestMessage) {
-      this.requests.delete(responseMessage.id);
-      logError("matching request message not found", responseMessage.id);
+      logError("matching request not found", response.id);
       return;
     }
 
-    request.responseObj.write(responseMessage.body);
+    request.responseObj.write(response.response);
     request.responseObj.statusCode = 200;
     request.responseObj.end();
-    this.requests.delete(responseMessage.id);
-    this.messages.delete(responseMessage.id);
-    log("responded to %s with %s", requestMessage.body, responseMessage.body);
+    this.requests.delete(response.id);
+    log("responded to %s with %s", request.request.request, response.response);
   }
 
-  public async handleReceivedMessageRequest(message: Message): Promise<void> {
-    const response = await this.sendToProvider(message, message.provider);
+  public async handleReceivedMessageRequest(request: Request): Promise<void> {
+    const response = await this.sendRequestToProvider(
+      request,
+      request.provider
+    );
     await this.sendMessage(
-      message.createResponseMessage(this.myPeerId, response),
-      message.origin
+      request.createResponse(response).toMessage(),
+      request.origin
     );
   }
 
@@ -110,14 +96,8 @@ export class Manager {
       receivedAt: new Date(),
     };
 
-    if (
-      segmentEntry.segments.find((s) => s.segment_nr === segment.segment_nr)
-    ) {
-      log(
-        "dropping segment, already exists",
-        segment.msgId,
-        segment.segment_nr
-      );
+    if (segmentEntry.segments.find((s) => s.segmentNr === segment.segmentNr)) {
+      log("dropping segment, already exists", segment.msgId, segment.segmentNr);
       return;
     }
 
@@ -125,40 +105,35 @@ export class Manager {
     this.segments.set(segment.msgId, segmentEntry);
     log("stored new segment");
 
-    if (Segment.areSegmentsComplete(segmentEntry.segments)) {
+    if (validateSegments(segmentEntry.segments)) {
       const message = Message.fromSegments(segmentEntry.segments);
-      const isResponse = message.origin === this.myPeerId;
 
-      // this is a response to a message we have sent
-      if (isResponse) this.handleReceivedMessageResponse(message);
-      // this is a new request we need to fulfill
-      else this.handleReceivedMessageRequest(message);
+      try {
+        const req = Request.fromMessage(message);
+        this.handleReceivedMessageRequest(req);
+      } catch {
+        const res = Response.fromMessage(message);
+        this.handleReceivedMessageResponse(res);
+      }
+
+      // remove segments
+      this.segments.delete(segment.msgId);
     }
   }
 
   public removeExpired(): void {
     const now = new Date();
 
-    log("messages", this.messages.size);
     log("requests", this.requests.size);
     log("segments", this.segments.size);
 
     for (const [id, entry] of this.requests.entries()) {
       log(isExpired(this.timeout, now, entry.createdAt));
       if (isExpired(this.timeout, now, entry.createdAt)) {
-        const message = this.messages.get(id);
-
-        if (!message) {
-          log("did not find message in expired request, dropping");
-          this.requests.delete(id);
-        } else {
-          log("dropping expired request");
-          this.requests.delete(id);
-          this.messages.delete(id);
-
-          entry.responseObj.statusCode = 400;
-          entry.responseObj.end();
-        }
+        log("dropping expired request");
+        this.requests.delete(id);
+        entry.responseObj.statusCode = 400;
+        entry.responseObj.end();
       }
     }
 

@@ -3,24 +3,22 @@
  */
 import http, { type ServerResponse } from "http";
 import { parse as parseUrl } from "url";
-import { Message } from "./message";
 import { createLogger } from "./utils";
 
-const { log } = createLogger("entry");
+const { log, logVerbose } = createLogger("entry");
 
 /**
  * Creates the entry server which accepts RPC requests from clients.
  * @param port port to run entry server on
- * @param myPeerId
- * @param onMessage called everytime a new RPC request is received
+ * @param onRequest called everytime a new RPC request is received
  * @returns http server
  */
-export const createEntryServer = (
+export const createServer = (
   port: number,
-  myPeerId: string,
-  onMessage: (
-    message: Message,
+  onRequest: (
+    body: string,
     responseObj: ServerResponse,
+    exitProvider: string,
     exitPeerId?: string
   ) => void
 ): (() => void) => {
@@ -29,6 +27,7 @@ export const createEntryServer = (
       let exitProvider: string | undefined;
       let exitPeerId: string | undefined;
 
+      // extract any given data provided by url parameters
       try {
         if (!req.url) throw Error("invalid url");
         const query = parseUrl(req.url).query || "";
@@ -37,33 +36,28 @@ export const createEntryServer = (
         exitPeerId = searchParams.get("exit-peerid") || undefined;
       } catch {}
 
+      // if exit-provider is missing, return missing parameter
       if (!exitProvider) {
-        log(
-          "rejected received data from client, missing exit-provider",
-          exitProvider
-        );
-        res.statusCode = 400;
-        res.write("Invalid Parameters");
+        log("request rejected, missing exit-provider");
+        res.statusCode = 422;
+        res.write("Missing parameter 'exit-provider'");
         res.end();
         return;
       }
 
       const body = data.toString();
-      log("received data from client", body, exitProvider, exitPeerId);
-
-      onMessage(
-        Message.fromBody(myPeerId, exitProvider, body),
-        res,
-        exitPeerId
-      );
+      log("request received");
+      logVerbose("request received", body, exitProvider, exitPeerId);
+      onRequest(body, res, exitProvider, exitPeerId);
     });
   });
 
   server.listen(port, undefined, undefined, () => {
-    console.log("HORP RPC Relay entry is listening at port", port);
+    log("HORP RPC Relay entry is listening at port", port);
   });
 
   return () => {
+    log("Closing entry server");
     server.close();
   };
 };

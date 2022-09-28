@@ -16,15 +16,15 @@ describe("test utility splitStrByBytes", function () {
 });
 
 describe("test utility isExpired", function () {
-  const timeout = 7e3;
-  const now = new Date();
-  const fiveSecondsAfter = new Date(now.valueOf() + 5e3);
-  const tenSecondsAfter = new Date(now.valueOf() + 10e3);
+  const createdAt = new Date("2022-09-28T00:00:00.000Z");
+  const timeout = 10e3;
+  const inFiveSecs = new Date(createdAt.valueOf() + 5e3);
+  const inTenSecs = new Date(createdAt.valueOf() + 15e3);
 
   it("should return false after 5 seconds", function () {
-    assert(!isExpired(timeout, now, fiveSecondsAfter));
+    assert(!isExpired(timeout, inFiveSecs, createdAt));
   });
-  it("should return true after 10 seconds", function () {
-    assert(isExpired(timeout, now, tenSecondsAfter));
+  it("should return true after 15 seconds", function () {
+    assert(isExpired(timeout, inTenSecs, createdAt));
   });
 });

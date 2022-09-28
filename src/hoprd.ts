@@ -5,31 +5,29 @@
 import WebSocket from "ws";
 import fetch from "node-fetch";
 import { utils } from "ethers";
-import { Segment } from "./segment";
 import { createLogger, createApiUrl } from "./utils";
 
-const { log, logError } = createLogger("hoprd");
+const { log, logVerbose } = createLogger("hoprd");
 
 /**
- * Attemps to decode a HOPRd message.
- * @param message
+ * Attemps to decode a HOPRd body.
+ * @param body
  * @returns decoded message
  */
-export const decodeIncomingMessage = (message: string): string | undefined => {
-  log("decoding", message);
+const decodeIncomingBody = (body: string): string | undefined => {
   try {
     return utils.toUtf8String(
-      utils.RLP.decode(new Uint8Array(JSON.parse(`[${message}]`)))[0]
+      utils.RLP.decode(new Uint8Array(JSON.parse(`[${body}]`)))[0]
     );
-  } catch (error) {
-    logError("Error decoding incoming message");
+  } catch {
+    logVerbose("safely failed to decode body", body);
   }
 };
 
 /**
  * @returns HOPRd's peerID
  */
-export const fetchNodePeerId = async (
+export const fetchPeerId = async (
   apiEndpoint: string,
   apiToken?: string
 ): Promise<string> => {
@@ -56,10 +54,10 @@ export const fetchNodePeerId = async (
 /**
  * Send a segment to a HOPRd node.
  */
-export const sendSegmentToExitRelay = async (
+export const sendMessage = async (
   apiEndpoint: string,
   apiToken: string | undefined,
-  segment: Segment,
+  message: string,
   destination: string
 ): Promise<void> => {
   const url = createApiUrl("http", apiEndpoint, "/api/v2/messages", apiToken);
@@ -76,29 +74,24 @@ export const sendSegmentToExitRelay = async (
     method: "POST",
     headers,
     body: JSON.stringify({
-      body: segment.toString(),
+      body: message,
       recipient: destination,
       path: [],
     }),
   });
 
-  log(
-    "send message to HOPRd node",
-    response.status,
-    segment.toString(),
-    destination
-  );
+  log("send message to HOPRd node", response.status, message, destination);
 };
 
 /**
  * Subscribes to the HOPRd endpoint for incoming messages.
- * @param onSegment called everytime a new valid segment is received
+ * @param onMessage called everytime a new HOPRd message is received
  * @returns websocket listener
  */
-export const createHOPRdListener = (
+export const createListener = (
   apiEndpoint: string,
   apiToken: string | undefined,
-  onSegment: (segment: Segment) => void
+  onMessage: (message: string) => void
 ): (() => void) => {
   const url = createApiUrl(
     "ws",
@@ -116,23 +109,18 @@ export const createHOPRdListener = (
   });
 
   ws.on("message", (data: { toString: () => string }) => {
-    const dataStr = data.toString();
-    log("received data from HOPRd");
+    const body = data.toString();
+    log("received body from HOPRd");
 
-    const decodedMessage = decodeIncomingMessage(dataStr);
-    if (!decodedMessage) return;
-    log("decoded received data", decodedMessage);
+    const message = decodeIncomingBody(body);
+    if (!message) return;
+    logVerbose("decoded received body", message);
 
-    if (!Segment.isValidSegmentStr(decodedMessage)) {
-      log(
-        "rejected received data from HOPRd: not a valid segment",
-        decodedMessage
-      );
-      return;
-    }
-
-    onSegment(Segment.fromString(decodedMessage));
+    onMessage(message);
   });
 
-  return () => ws.close();
+  return () => {
+    log("Closing HOPRd listener");
+    ws.close();
+  };
 };

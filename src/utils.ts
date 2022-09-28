@@ -16,13 +16,16 @@ export const createLogger = (
   ...args: any[]
 ): {
   log: Debugger;
+  logVerbose: Debugger;
   logError: Debugger;
 } => {
   const log = Debug(["hopr-rpc-relay", ...args].join(":"));
+  const logVerbose = log.extend("verbose");
   const logError = log.extend("error");
 
   return {
     log,
+    logVerbose,
     logError,
   };
 };
@@ -68,6 +71,14 @@ export const isExpired = (
   return createdAt.valueOf() + timeout < now.valueOf();
 };
 
+/**
+ * Derive the API url from given parameters.
+ * @param protocol
+ * @param endpoint
+ * @param path
+ * @param token
+ * @returns URL in string
+ */
 export const createApiUrl = (
   protocol: "http" | "ws",
   endpoint: string,

@@ -2,30 +2,29 @@
  * Responsible for creating external requests.
  */
 import fetch from "node-fetch";
-import { Message } from "./message";
 import { createLogger } from "./utils";
 
-const { log } = createLogger("exit");
+const { log, logVerbose } = createLogger("exit");
 
 /**
  * Creates a request to the given provider and returns response.
- * @param message Message to send
+ * @param body to send to provider
  * @param provider exiting provider (infure, etc)
  * @returns response from provider
  */
-export const sendRpcToProvider = async (
-  message: Message,
+export const sendRequest = async (
+  body: string,
   provider: string
 ): Promise<string> => {
-  log("sending data to provider", message.body);
+  log("sending request to provider");
+  logVerbose("sending request to provider", body, provider);
 
   return fetch(provider, {
     method: "POST",
-    body: message.body,
+    body: body,
   }).then(async (res) => {
     const response = await res.text();
-    log("response from provider", response);
-
+    logVerbose("response from provider", res.status, response);
     return response;
   });
 };

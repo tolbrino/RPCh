@@ -1,6 +1,12 @@
-import startHoprRpcRelay from "./rpc-relay";
-import { fetchNodePeerId, sendSegmentToExitRelay } from "./hoprd";
-import { sendRpcToProvider } from "./exit";
+import * as entry from "./entry";
+import * as hoprd from "./hoprd";
+import * as exit from "./exit";
+import { Manager } from "./manager";
+import { createLogger } from "./utils";
+import Request from "./request";
+import Segment from "./segment";
+
+const { log } = createLogger();
 
 const {
   ENTRY_PORT: ENTRY_PORT_STR,
@@ -25,12 +31,66 @@ if (isNaN(RESPONSE_TIMEOUT)) {
   throw Error("env variable 'RESPONSE_TIMEOUT' not a number");
 }
 
-startHoprRpcRelay({
+const start = async (ops: {
+  entryPort: number;
+  apiEndpoint: string;
+  apiToken?: string;
+  timeout: number;
+}): Promise<() => void> => {
+  // TODO: retry and fail to start
+  const myPeerId = await hoprd.fetchPeerId(ops.apiEndpoint, ops.apiToken);
+  log("fetched PeerId", myPeerId);
+  const manager = new Manager(
+    ops.timeout,
+    (segment, destination) => {
+      return hoprd.sendMessage(
+        ops.apiEndpoint,
+        ops.apiToken,
+        segment.toString(),
+        destination
+      );
+    },
+    (request, provider) => {
+      return exit.sendRequest(request.request, provider);
+    }
+  );
+
+  const stopEntryServer = entry.createServer(
+    ops.entryPort,
+    (body, responseObj, exitProvider, exitPeerId) => {
+      const request = Request.fromData(myPeerId, exitProvider, body);
+      manager.createRequest(
+        request,
+        responseObj,
+        "16Uiu2HAm8avoHzzZZRpiJNjAFbkVWehKzpWPcVkvH1RrieCkWsDS"
+      );
+    }
+  );
+  const stopHOPRdListener = hoprd.createListener(
+    ops.apiEndpoint,
+    ops.apiToken,
+    (message) => {
+      try {
+        const segment = Segment.fromString(message);
+        manager.onSegmentReceived(segment);
+      } catch {
+        log("rejected received data from HOPRd: not a valid segment", message);
+      }
+    }
+  );
+
+  const interval = setInterval(() => manager.removeExpired(), 1e3);
+
+  return () => {
+    clearInterval(interval);
+    stopEntryServer();
+    stopHOPRdListener();
+  };
+};
+
+start({
   entryPort: ENTRY_PORT,
+  timeout: RESPONSE_TIMEOUT,
   apiEndpoint: HOPRD_API_ENDPOINT,
   apiToken: HOPRD_API_TOKEN,
-  timeout: RESPONSE_TIMEOUT,
-  fetchNodePeerId,
-  sendSegmentToExitRelay,
-  sendRpcToProvider,
 });

@@ -1,50 +1,43 @@
+const SEPERATOR = "|";
+
 /**
  * Represents a segment of a message.
- * This is what we send over HOPR network.
+ * This is what we send over the HOPR network.
  */
-export class Segment {
+export default class Segment {
   constructor(
     public readonly msgId: string,
-    public readonly segment_nr: number,
-    public readonly nr_of_segments: number,
-    public readonly origin: string,
-    public readonly provider: string,
+    public readonly segmentNr: number,
+    public readonly segmentsLength: number,
     public readonly body: string
   ) {}
 
-  public static fromString(str: string): Segment {
-    const [msgId, segment_nr, nr_of_segments, origin, provider, ...body] =
-      str.split("|") as any;
-
-    return new Segment(
-      msgId,
-      Number(segment_nr),
-      Number(nr_of_segments),
-      origin,
-      provider,
-      body.join("|")
+  public toString() {
+    return [this.msgId, this.segmentNr, this.segmentsLength, this.body].join(
+      SEPERATOR
     );
   }
 
-  public static isValidSegmentStr(str: string): boolean {
-    const segment = Segment.fromString(str);
-    return Object.values(segment).every((val) => typeof val !== "undefined");
-  }
+  public static fromString(str: string): Segment {
+    const [msgId_, segmentNr_, segmentsLength_, ...body_] = str.split(
+      SEPERATOR
+    ) as string[];
 
-  public static areSegmentsComplete(segments: Segment[]): boolean {
-    if (segments.length === 0) return false;
-    const { nr_of_segments } = segments[0];
-    return nr_of_segments === segments.length;
-  }
+    const msgId = msgId_;
+    const segmentNr = Number(segmentNr_);
+    const segmentsLength = Number(segmentsLength_);
+    const body = body_.join(SEPERATOR);
 
-  public toString() {
-    return [
-      this.msgId,
-      this.segment_nr,
-      this.nr_of_segments,
-      this.origin,
-      this.provider,
-      this.body,
-    ].join("|");
+    if (!msgId || isNaN(segmentNr) || isNaN(segmentsLength) || !body) {
+      throw Error(`Failed to construct Segment from string: ${str}`);
+    }
+
+    return new Segment(msgId, segmentNr, segmentsLength, body);
   }
 }
+
+export const validateSegments = (segments: Segment[]): boolean => {
+  if (segments.length === 0) return false;
+  const { segmentsLength } = segments[0];
+  return segmentsLength === segments.length;
+};
