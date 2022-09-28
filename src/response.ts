@@ -2,6 +2,10 @@ import Message from "./message";
 
 const SEPERATOR = "|";
 
+/**
+ * Represents a response made by a hopr-rpc-relay.
+ * To be send over the HOPR network via Response.toMessage().
+ */
 export default class Response {
   constructor(public readonly id: string, public readonly response: string) {}
 

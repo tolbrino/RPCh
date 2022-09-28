@@ -4,6 +4,10 @@ import { generateRandomId } from "./utils";
 
 const SEPERATOR = "|";
 
+/**
+ * Represents a request made by the hopr-rpc-relay.
+ * To be send over the HOPR network via Request.toMessage().
+ */
 export default class Request {
   constructor(
     public readonly id: string,

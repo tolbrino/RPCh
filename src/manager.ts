@@ -8,7 +8,7 @@ import { createLogger, isExpired } from "./utils";
 const { log, logError } = createLogger("manager");
 
 /**
- * Stores pending requests and partial segments.
+ * Stores requests made and incoming segments.
  */
 export class Manager {
   // requests we have made to another relay, keyed by message.id
@@ -42,6 +42,12 @@ export class Manager {
     ) => Promise<string>
   ) {}
 
+  /**
+   * Break apart message to segments and sent it
+   * over the HOPR network.
+   * @param message
+   * @param destination
+   */
   private async sendMessage(
     message: Message,
     destination: string
@@ -51,6 +57,13 @@ export class Manager {
     }
   }
 
+  /**
+   * Create a reqeust and send it over
+   * the HOPR network.
+   * @param request
+   * @param responseObj http response object
+   * @param destination exit peer id
+   */
   public async createRequest(
     request: Request,
     responseObj: ServerResponse,
