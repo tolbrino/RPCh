@@ -1,0 +1,29 @@
+name: Build and publish Docker image
+
+on:
+  push:
+    branches: ['main']
+
+concurrency:
+  # limit invocations of this workflow to one at a time to prevent race
+  # conditions
+  group: build-docker
+  # just canceling could lead to side-effects of incomplete runs, so let's just
+  # run through each invocation completely
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and publish Docker images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64,darwin
+          push: true
+          tags:
+            - "gcr.io/hoprassociation/hopr-rpc-relay:${{ github.sha }}"
