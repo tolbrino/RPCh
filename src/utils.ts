@@ -5,7 +5,7 @@ import { utils } from "ethers";
  * Maximum bytes we should be sending
  * within the HOPR network.
  */
-export const MAX_BYTES = 250;
+export const MAX_BYTES = 400;
 
 /**
  * Sugar fuction for creating consistent loggers.
@@ -50,13 +50,13 @@ export const splitStrByBytes = (str: string, maxBytes: number): string[] => {
 };
 
 /**
- * Pseudo generate random ID, not used in
+ * Pseudo generate random numbers, not used in
  * anything cryptographically important.
  * @disclaimer Not suitable for crypto.
- * @returns id
+ * @returns 6 digit number
  */
-export const generateRandomId = (): string => {
-  return String(Math.floor(Math.random() * 1e6));
+export const generateRandomNumber = (): number => {
+  return Math.floor(Math.random() * 1e6);
 };
 
 /**
@@ -74,9 +74,9 @@ export const isExpired = (
 /**
  * Derive the API url from given parameters.
  * @param protocol
- * @param endpoint
+ * @param apiEndpoint
  * @param path
- * @param token
+ * @param apiToken
  * @returns URL in string
  */
 export const createApiUrl = (

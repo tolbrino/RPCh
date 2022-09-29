@@ -7,7 +7,7 @@ const SEPERATOR = "|";
  * To be send over the HOPR network via Response.toMessage().
  */
 export default class Response {
-  constructor(public readonly id: string, public readonly response: string) {}
+  constructor(public readonly id: number, public readonly response: string) {}
 
   public static fromMessage(message: Message): Response {
     const [type, ...response] = message.body.split(SEPERATOR);

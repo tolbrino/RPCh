@@ -1,6 +1,6 @@
 import Message from "./message";
 import Response from "./response";
-import { generateRandomId } from "./utils";
+import { generateRandomNumber } from "./utils";
 
 const SEPERATOR = "|";
 
@@ -10,7 +10,7 @@ const SEPERATOR = "|";
  */
 export default class Request {
   constructor(
-    public readonly id: string,
+    public readonly id: number,
     public readonly origin: string,
     public readonly provider: string,
     public readonly request: string
@@ -21,7 +21,7 @@ export default class Request {
     provider: string,
     request: string
   ): Request {
-    return new Request(generateRandomId(), origin, provider, request);
+    return new Request(generateRandomNumber(), origin, provider, request);
   }
 
   public static fromMessage(message: Message): Request {

@@ -1,4 +1,5 @@
 import Segment from "./segment";
+import { utils } from "ethers";
 import { splitStrByBytes, MAX_BYTES } from "./utils";
 
 /**
@@ -6,7 +7,7 @@ import { splitStrByBytes, MAX_BYTES } from "./utils";
  * Which can be turned into segments and send over the HOPR network.
  */
 export default class Message {
-  constructor(public readonly id: string, public readonly body: string) {}
+  constructor(public readonly id: number, public readonly body: string) {}
 
   public static fromSegments(segments: Segment[]): Message {
     if (segments.length === 0) {
@@ -37,7 +38,10 @@ export default class Message {
   }
 
   public toSegments(): Segment[] {
-    const bodies = splitStrByBytes(this.body, MAX_BYTES);
+    const bodies = splitStrByBytes(
+      this.body,
+      MAX_BYTES - Segment.MAX_SIZE_WITHOUT_BODY
+    );
     if (!bodies) return [];
 
     return bodies.map(
