@@ -7,13 +7,13 @@ describe("test Request class", function () {
   it("should create request", function () {
     const request = new Request(13, ORIGIN, PROVIDER, RPC_REQ_SMALL);
     assert.equal(request.id, 13);
-    assert.equal(request.request, RPC_REQ_SMALL);
+    assert.equal(request.body, RPC_REQ_SMALL);
     assert.equal(request.origin, ORIGIN);
     assert.equal(request.provider, PROVIDER);
   });
   it("should create request from data", function () {
     const request = Request.fromData(ORIGIN, PROVIDER, RPC_REQ_SMALL);
-    assert.equal(request.request, RPC_REQ_SMALL);
+    assert.equal(request.body, RPC_REQ_SMALL);
     assert.equal(request.origin, ORIGIN);
     assert.equal(request.provider, PROVIDER);
   });
@@ -34,7 +34,7 @@ describe("test Request class", function () {
     const request = Request.fromMessage(
       new Message(13, `request|${ORIGIN}|${PROVIDER}|${RPC_REQ_SMALL}`)
     );
-    assert.equal(request.request, RPC_REQ_SMALL);
+    assert.equal(request.body, RPC_REQ_SMALL);
     assert.equal(request.origin, ORIGIN);
     assert.equal(request.provider, PROVIDER);
   });
@@ -46,6 +46,6 @@ describe("test Request class", function () {
       RPC_REQ_SMALL
     ).createResponse("response");
     assert.equal(response.id, 13);
-    assert.equal(response.response, "response");
+    assert.equal(response.body, "response");
   });
 });

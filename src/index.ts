@@ -53,7 +53,7 @@ const start = async (ops: {
       );
     },
     (request, provider) => {
-      return exit.sendRequest(request.request, provider);
+      return exit.sendRequest(request.body, provider);
     }
   );
 

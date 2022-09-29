@@ -7,7 +7,7 @@ import fetch from "node-fetch";
 import { utils } from "ethers";
 import { createLogger, createApiUrl } from "./utils";
 
-const { log, logVerbose } = createLogger("hoprd");
+const { log, logError, logVerbose } = createLogger("hoprd");
 
 /**
  * Attemps to decode a HOPRd body.
@@ -92,7 +92,15 @@ export const sendMessage = async (
     }),
   });
 
-  log("send message to HOPRd node", response.status, message, destination);
+  if (response.status !== 202) {
+    logError(
+      "failed to send message to HOPRd node",
+      response.status,
+      await response.text()
+    );
+  } else {
+    log("send message to HOPRd node", message, destination);
+  }
 };
 
 /**

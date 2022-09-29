@@ -82,18 +82,18 @@ export class Manager {
   }
 
   public handleReceivedMessageResponse(response: Response): void {
-    const request = this.requests.get(response.id);
-    if (!request) {
+    const requestEntry = this.requests.get(response.id);
+    if (!requestEntry) {
       logError("matching request not found", response.id);
       return;
     }
 
-    request.responseObj.write(response.response);
-    request.responseObj.statusCode = 200;
-    request.responseObj.end();
+    requestEntry.responseObj.write(response.body);
+    requestEntry.responseObj.statusCode = 200;
+    requestEntry.responseObj.end();
     this.requests.delete(response.id);
     logVerbose("responses received", ++resReceivedCount);
-    log("responded to %s with %s", request.request.request, response.response);
+    log("responded to %s with %s", requestEntry.request.body, response.body);
   }
 
   public async handleReceivedMessageRequest(request: Request): Promise<void> {
