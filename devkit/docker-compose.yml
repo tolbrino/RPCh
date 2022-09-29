@@ -1,0 +1,64 @@
+volumes:
+  # hoprd node id files, which should be kept between restarts to not change
+  # peer ids all the time
+  pluto-data:
+
+x-shared-config: &shared-config
+  environment:
+    - HOPRD_API_TOKEN=^^awesomeHOPRr3l4y^^
+
+x-relay-service: &relay
+  image: gcr.io/hoprassociation/hopr-rpc-relay:${RELAY_VERSION:-latest}
+  restart: unless-stopped
+  environment:
+    - ENTRY_PORT=8080
+  depends_on:
+    - pluto
+
+services:
+  pluto:
+    <<: *shared-config
+    image: gcr.io/hoprassociation/hopr-pluto:valencia
+    restart: unless-stopped
+    volumes:
+      - pluto-data:/tmp
+    ports:
+      # mapping admin and api ports to localhost for app developers to access
+      # the admin UI more easily
+      - "13301-13305:13301-13305"
+      - "19091-19095:19091-19095"
+  relay-1:
+    <<: *shared-config
+    <<: *relay
+    environment:
+      - HOPRD_API_ENDPOINT="http://pluto:13301"
+    ports:
+      - "9001:8080" # mapping port to localhost for easier recognition
+  relay-2:
+    <<: *shared-config
+    <<: *relay
+    environment:
+      - HOPRD_API_ENDPOINT="http://pluto:13302"
+    ports:
+      - "9002:8080" # mapping port to localhost for easier recognition
+  relay-3:
+    <<: *shared-config
+    <<: *relay
+    environment:
+      - HOPRD_API_ENDPOINT="http://pluto:13303"
+    ports:
+      - "9003:8080" # mapping port to localhost for easier recognition
+  relay-4:
+    <<: *shared-config
+    <<: *relay
+    environment:
+      - HOPRD_API_ENDPOINT="http://pluto:13304"
+    ports:
+      - "9004:8080" # mapping port to localhost for easier recognition
+  relay-5:
+    <<: *shared-config
+    <<: *relay
+    environment:
+      - HOPRD_API_ENDPOINT="http://pluto:13305"
+    ports:
+      - "9005:8080" # mapping port to localhost for easier recognition
