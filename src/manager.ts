@@ -16,7 +16,7 @@ let resReceivedCount = 0;
 export class Manager {
   // requests we have made to another relay, keyed by message.id
   private requests = new Map<
-    string,
+    number,
     {
       request: Request;
       responseObj: ServerResponse;
@@ -26,7 +26,7 @@ export class Manager {
 
   // partial segments received, keyed by segment.msgId
   private segments = new Map<
-    string,
+    number,
     {
       segments: Segment[];
       receivedAt: Date;
