@@ -5,7 +5,10 @@ import Message from "./message";
 import Segment, { validateSegments } from "./segment";
 import { createLogger, isExpired } from "./utils";
 
-const { log, logError } = createLogger("manager");
+const { log, logVerbose, logError } = createLogger("manager");
+
+let reqCreatedCount = 0;
+let resReceivedCount = 0;
 
 /**
  * Stores requests made and incoming segments.
@@ -69,6 +72,7 @@ export class Manager {
     responseObj: ServerResponse,
     destination: string
   ): Promise<void> {
+    logVerbose("requests created", ++reqCreatedCount);
     this.requests.set(request.id, {
       request,
       createdAt: new Date(),
@@ -88,6 +92,7 @@ export class Manager {
     request.responseObj.statusCode = 200;
     request.responseObj.end();
     this.requests.delete(response.id);
+    logVerbose("responses received", ++resReceivedCount);
     log("responded to %s with %s", request.request.request, response.response);
   }
 
