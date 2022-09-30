@@ -12,6 +12,7 @@ x-relay-service: &relay
   restart: unless-stopped
   environment:
     - ENTRY_PORT=8080
+    - DEBUG=hopr*
   depends_on:
     - pluto
 
