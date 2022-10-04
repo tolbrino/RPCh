@@ -82,14 +82,20 @@ export const sendMessage = async (
     apiToken
   );
 
+  const body: { body: string, recipient: string, path?: string[] } = {
+      body: message,
+      recipient: destination,
+      path: []
+  }
+
+  if (process.env.USE_AUTO_PATHFINDING == 'true') {
+    delete(body.path)
+  }
+
   const response = await fetch(url, {
     method: "POST",
     headers,
-    body: JSON.stringify({
-      body: message,
-      recipient: destination,
-      path: [],
-    }),
+    body: JSON.stringify(body),
   });
 
   if (response.status !== 202) {
