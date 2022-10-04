@@ -48,7 +48,7 @@ it being relayed locally fully-functional.
 As a shorthand one can run the DevKit by executing:
 
 ```
-RELAY_VERSION=v0.0.1 make devkit-run
+RELAY_VERSION=latest make devkit-run
 ```
 
 This will create and launch all required Docker containers. After a few minutes
