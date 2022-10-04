@@ -27,7 +27,7 @@ services:
       # mapping admin and api ports to localhost for app developers to access
       # the admin UI more easily
       - "13301-13305:13301-13305"
-      - "19091-19095:19091-19095"
+      - "19501-19505:19501-19505"
   relay-1:
     <<: *shared-config
     <<: *relay
