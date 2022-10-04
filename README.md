@@ -26,7 +26,7 @@ If you have an already running HOPRd node, you can simply adjust the environment
 ```terminal
 yarn build
 
-DEBUG="hopr*,-*verbose" \
+DEBUG="rpch*,-*verbose" \
     ENTRY_PORT=3000 \
     HOPRD_API_ENDPOINT= \
     HOPRD_API_TOKEN= yarn start
