@@ -35,6 +35,26 @@ if (isNaN(RESPONSE_TIMEOUT)) {
   throw Error("env variable 'RESPONSE_TIMEOUT' not a number");
 }
 
+// this is periodically updated
+let exitPeerIds: string[] = []
+
+async function periodicallyFetchExitPeerIds(myPeerId: string, endpoint: string, token?: string) {
+    const fun = async () => {
+      const newExitPeerIds: string[] = await hoprd
+      .fetchPeers(endpoint, token)
+      .then((peers: string[]) => {
+        return peers.filter((peer: string) => peer !== myPeerId);
+    });
+    log("found %i eligible exit peer ids", newExitPeerIds.length);
+    exitPeerIds = newExitPeerIds
+  }
+
+  // call once initially
+  await fun()
+  // then every 20 seconds
+  setInterval(fun, 20_000)
+}
+
 const start = async (ops: {
   entryHost: string;
   entryPort: number;
@@ -45,12 +65,7 @@ const start = async (ops: {
   // TODO: retry and fail to start
   const myPeerId = await hoprd.fetchPeerId(ops.apiEndpoint, ops.apiToken);
   log("fetched PeerId", myPeerId);
-  const exitPeerIds = await hoprd
-    .fetchPeers(ops.apiEndpoint, ops.apiToken)
-    .then((peers) => {
-      return peers.filter((peer) => peer !== myPeerId);
-    });
-  log("found %i eligible exit peer ids", exitPeerIds.length);
+  await periodicallyFetchExitPeerIds(myPeerId, ops.apiEndpoint, ops.apiToken)
   const manager = new Manager(
     ops.timeout,
     (segment, destination) => {
@@ -66,6 +81,13 @@ const start = async (ops: {
     }
   );
 
+  const getExitPeer = () => {
+    if (exitPeerIds) {
+      return exitPeerIds[Math.floor(Math.random() * exitPeerIds.length)]
+    }
+    return ""
+  }
+
   const stopEntryServer = entry.createServer(
     ops.entryHost,
     ops.entryPort,
@@ -74,8 +96,7 @@ const start = async (ops: {
       manager.createRequest(
         request,
         responseObj,
-        exitPeerId ||
-          exitPeerIds[Math.floor(Math.random() * exitPeerIds.length)]
+        exitPeerId || getExitPeer()
       );
     }
   );

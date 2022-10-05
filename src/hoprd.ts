@@ -63,7 +63,7 @@ export const fetchPeers = async (
 
   return fetch(url, { headers })
     .then((res) => res.json())
-    .then((res) => res.connected.map((o: any) => o.peerId));
+    .then((res) => res.connected.map((o: any) => o.peerId))
 };
 
 /**
