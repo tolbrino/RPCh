@@ -9,6 +9,7 @@ import Segment from "./segment";
 const { log } = createLogger();
 
 const {
+  ENTRY_HOST,
   ENTRY_PORT: ENTRY_PORT_STR,
   HOPRD_API_ENDPOINT,
   HOPRD_API_TOKEN,
@@ -16,6 +17,9 @@ const {
 } = process.env;
 
 // validate environment variables
+if (!ENTRY_HOST) {
+  throw Error("env variable 'ENTRY_HOST' not found");
+}
 if (!ENTRY_PORT_STR) {
   throw Error("env variable 'ENTRY_PORT' not found");
 }
@@ -32,6 +36,7 @@ if (isNaN(RESPONSE_TIMEOUT)) {
 }
 
 const start = async (ops: {
+  entryHost: string;
   entryPort: number;
   apiEndpoint: string;
   apiToken?: string;
@@ -62,6 +67,7 @@ const start = async (ops: {
   );
 
   const stopEntryServer = entry.createServer(
+    ops.entryHost,
     ops.entryPort,
     (body, responseObj, exitProvider, exitPeerId) => {
       const request = Request.fromData(myPeerId, exitProvider, body);
@@ -96,6 +102,7 @@ const start = async (ops: {
 };
 
 start({
+  entryHost: ENTRY_HOST,
   entryPort: ENTRY_PORT,
   timeout: RESPONSE_TIMEOUT,
   apiEndpoint: HOPRD_API_ENDPOINT,

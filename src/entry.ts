@@ -9,11 +9,13 @@ const { log, logVerbose } = createLogger("entry");
 
 /**
  * Creates the entry server which accepts RPC requests from clients.
+ * @param host host to run entry server on
  * @param port port to run entry server on
  * @param onRequest called everytime a new RPC request is received
  * @returns http server
  */
 export const createServer = (
+  host: string,
   port: number,
   onRequest: (
     body: string,
@@ -52,8 +54,8 @@ export const createServer = (
     });
   });
 
-  server.listen(port, undefined, undefined, () => {
-    log("HORP RPC Relay entry is listening at port", port);
+  server.listen(port, host, undefined, () => {
+    log(`HORP RPC Relay entry is listening on ${host}:${port}`);
   });
 
   return () => {

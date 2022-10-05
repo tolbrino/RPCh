@@ -26,6 +26,7 @@ services:
   relay-1:
     <<: *relay
     environment:
+      - ENTRY_HOST=${RELAY_ENTRY_HOST}
       - ENTRY_PORT=${RELAY_ENTRY_PORT}
       - USE_AUTO_PATHFINDING=${RELAY_USE_AUTO_PATHFINDING:-false}
       - HOPRD_API_ENDPOINT=http://pluto:13301
@@ -36,6 +37,7 @@ services:
   relay-2:
     <<: *relay
     environment:
+      - ENTRY_HOST=${RELAY_ENTRY_HOST}
       - ENTRY_PORT=${RELAY_ENTRY_PORT}
       - USE_AUTO_PATHFINDING=${RELAY_USE_AUTO_PATHFINDING:-false}
       - HOPRD_API_ENDPOINT=http://pluto:13302
@@ -46,6 +48,7 @@ services:
   relay-3:
     <<: *relay
     environment:
+      - ENTRY_HOST=${RELAY_ENTRY_HOST}
       - ENTRY_PORT=${RELAY_ENTRY_PORT}
       - USE_AUTO_PATHFINDING=${RELAY_USE_AUTO_PATHFINDING:-false}
       - HOPRD_API_ENDPOINT=http://pluto:13303
@@ -56,6 +59,7 @@ services:
   relay-4:
     <<: *relay
     environment:
+      - ENTRY_HOST=${RELAY_ENTRY_HOST}
       - ENTRY_PORT=${RELAY_ENTRY_PORT}
       - USE_AUTO_PATHFINDING=${RELAY_USE_AUTO_PATHFINDING:-false}
       - HOPRD_API_ENDPOINT=http://pluto:13304
@@ -66,6 +70,7 @@ services:
   relay-5:
     <<: *relay
     environment:
+      - ENTRY_HOST=${RELAY_ENTRY_HOST}
       - ENTRY_PORT=${RELAY_ENTRY_PORT}
       - USE_AUTO_PATHFINDING=${RELAY_USE_AUTO_PATHFINDING:-false}
       - HOPRD_API_ENDPOINT=http://pluto:13305
