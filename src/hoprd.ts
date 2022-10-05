@@ -63,7 +63,7 @@ export const fetchPeers = async (
 
   return fetch(url, { headers })
     .then((res) => res.json())
-    .then((res) => res.connected.map((o: any) => o.peerId));
+    .then((res) => res.connected.map((o: any) => o.peerId))
 };
 
 /**
@@ -128,7 +128,7 @@ export const createListener = (
   const ws = new WebSocket(url);
 
   ws.on("upgrade", () => {
-    console.log(
+    log(
       "HORP RPC Relay is listening for messages coming from HOPRd at",
       url
     );

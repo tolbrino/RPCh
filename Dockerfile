@@ -43,7 +43,11 @@ ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # we use tini as process 1 to catch signals properly, which is also built into Docker by default
-RUN apk add --no-cache tini
+RUN apk add --no-cache tini curl
+
+# this helper script can be used to ensure the hoprd node is running before starting
+RUN  curl https://raw.githubusercontent.com/eficode/wait-for/v2.2.3/wait-for > /bin/wait-for \
+  && chmod u+x /bin/wait-for
 
 WORKDIR /app
 
@@ -60,4 +64,6 @@ ENV ENTRY_PORT=${ENTRY_PORT:-8080}
 ENV HOPRD_API_ENDPOINT=${HOPRD_API_ENDPOINT:-}
 ENV HOPRD_API_TOKEN=${HOPRD_API_TOKEN:-}
 
-ENTRYPOINT ["/sbin/tini", "--", "yarn", "run", "start"]
+CMD ["yarn", "run", "start"]
+
+ENTRYPOINT ["/sbin/tini", "--"]

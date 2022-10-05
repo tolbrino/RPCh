@@ -9,6 +9,7 @@ import Segment from "./segment";
 const { log } = createLogger();
 
 const {
+  ENTRY_HOST,
   ENTRY_PORT: ENTRY_PORT_STR,
   HOPRD_API_ENDPOINT,
   HOPRD_API_TOKEN,
@@ -16,6 +17,9 @@ const {
 } = process.env;
 
 // validate environment variables
+if (!ENTRY_HOST) {
+  throw Error("env variable 'ENTRY_HOST' not found");
+}
 if (!ENTRY_PORT_STR) {
   throw Error("env variable 'ENTRY_PORT' not found");
 }
@@ -31,7 +35,28 @@ if (isNaN(RESPONSE_TIMEOUT)) {
   throw Error("env variable 'RESPONSE_TIMEOUT' not a number");
 }
 
+// this is periodically updated
+let exitPeerIds: string[] = []
+
+async function periodicallyFetchExitPeerIds(myPeerId: string, endpoint: string, token?: string) {
+    const fun = async () => {
+      const newExitPeerIds: string[] = await hoprd
+      .fetchPeers(endpoint, token)
+      .then((peers: string[]) => {
+        return peers.filter((peer: string) => peer !== myPeerId);
+    });
+    log("found %i eligible exit peer ids", newExitPeerIds.length);
+    exitPeerIds = newExitPeerIds
+  }
+
+  // call once initially
+  await fun()
+  // then every 20 seconds
+  setInterval(fun, 20_000)
+}
+
 const start = async (ops: {
+  entryHost: string;
   entryPort: number;
   apiEndpoint: string;
   apiToken?: string;
@@ -40,12 +65,7 @@ const start = async (ops: {
   // TODO: retry and fail to start
   const myPeerId = await hoprd.fetchPeerId(ops.apiEndpoint, ops.apiToken);
   log("fetched PeerId", myPeerId);
-  const exitPeerIds = await hoprd
-    .fetchPeers(ops.apiEndpoint, ops.apiToken)
-    .then((peers) => {
-      return peers.filter((peer) => peer !== myPeerId);
-    });
-  log("found %i eligible exit peer ids", exitPeerIds.length);
+  await periodicallyFetchExitPeerIds(myPeerId, ops.apiEndpoint, ops.apiToken)
   const manager = new Manager(
     ops.timeout,
     (segment, destination) => {
@@ -61,15 +81,22 @@ const start = async (ops: {
     }
   );
 
+  const getExitPeer = () => {
+    if (exitPeerIds) {
+      return exitPeerIds[Math.floor(Math.random() * exitPeerIds.length)]
+    }
+    return ""
+  }
+
   const stopEntryServer = entry.createServer(
+    ops.entryHost,
     ops.entryPort,
     (body, responseObj, exitProvider, exitPeerId) => {
       const request = Request.fromData(myPeerId, exitProvider, body);
       manager.createRequest(
         request,
         responseObj,
-        exitPeerId ||
-          exitPeerIds[Math.floor(Math.random() * exitPeerIds.length)]
+        exitPeerId || getExitPeer()
       );
     }
   );
@@ -96,6 +123,7 @@ const start = async (ops: {
 };
 
 start({
+  entryHost: ENTRY_HOST,
   entryPort: ENTRY_PORT,
   timeout: RESPONSE_TIMEOUT,
   apiEndpoint: HOPRD_API_ENDPOINT,
