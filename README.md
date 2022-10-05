@@ -14,6 +14,7 @@ Once RPCh connects to a running HOPRd API, it will listen for incoming RPC reque
 
 | variable                    | description                                                       |
 | :-------------------------- | :---------------------------------------------------------------- |
+| ENTRY_HOST                  | the host to which the client will send RPC requests               |
 | ENTRY_PORT                  | the port in which the client will send RPC requests               |
 | HOPRD_API_ENDPOINT          | api endpoint of HOPRd                                             |
 | HOPRD_API_TOKEN             | api token of HOPRd                                                |
@@ -27,6 +28,7 @@ If you have an already running HOPRd node, you can simply adjust the environment
 yarn build
 
 DEBUG="rpch*,-*verbose" \
+    ENTRY_HOST="127.0.0.1" \
     ENTRY_PORT=3000 \
     HOPRD_API_ENDPOINT= \
     HOPRD_API_TOKEN= yarn start
