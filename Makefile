@@ -16,6 +16,7 @@ ifeq ($(tag),)
 	echo "parameter <tag> missing"
 	exit 1
 endif
+	docker pull gcr.io/hoprassociation/hopr-rpc-relay:$(tag)
 	docker tag gcr.io/hoprassociation/hopr-rpc-relay:$(tag) \
 	  gcr.io/hoprassociation/hopr-rpc-relay:latest
 	docker push gcr.io/hoprassociation/hopr-rpc-relay:latest
