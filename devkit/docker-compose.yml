@@ -4,10 +4,11 @@ volumes:
   pluto-data:
 
 x-relay-service: &relay
-  image: gcr.io/hoprassociation/hopr-rpc-relay:${RELAY_VERSION:-latest}
+  image: ${RELAY_IMAGE:-gcr.io/hoprassociation/hopr-rpc-relay:${RELAY_VERSION:-latest}}
   restart: unless-stopped
   depends_on:
     - pluto
+  entrypoint: ["/bin/wait-for", "pluto:$${HOPRD_API_PORT}", "-q", "-t", "60", "--", "/sbin/tini", "--"]
 
 services:
   pluto:
@@ -29,7 +30,8 @@ services:
       - DEBUG="${DEBUG}"
       - ENTRY_PORT=${RELAY_ENTRY_PORT}
       - USE_AUTO_PATHFINDING=${RELAY_USE_AUTO_PATHFINDING:-false}
-      - HOPRD_API_ENDPOINT="http://pluto:13301"
+      - HOPRD_API_PORT=13301
+      - HOPRD_API_ENDPOINT=http://pluto:$${HOPRD_API_PORT}
       - HOPRD_API_TOKEN="${HOPRD_API_TOKEN}"
     ports:
       - "9001:8081" # mapping port to localhost for easier recognition
@@ -39,7 +41,8 @@ services:
       - DEBUG="${DEBUG}"
       - ENTRY_PORT=${RELAY_ENTRY_PORT}
       - USE_AUTO_PATHFINDING=${RELAY_USE_AUTO_PATHFINDING:-false}
-      - HOPRD_API_ENDPOINT="http://pluto:13302"
+      - HOPRD_API_PORT=13302
+      - HOPRD_API_ENDPOINT=http://pluto:$${HOPRD_API_PORT}
       - HOPRD_API_TOKEN="${HOPRD_API_TOKEN}"
     ports:
       - "9002:8081" # mapping port to localhost for easier recognition
@@ -49,7 +52,8 @@ services:
       - DEBUG="${DEBUG}"
       - ENTRY_PORT=${RELAY_ENTRY_PORT}
       - USE_AUTO_PATHFINDING=${RELAY_USE_AUTO_PATHFINDING:-false}
-      - HOPRD_API_ENDPOINT="http://pluto:13303"
+      - HOPRD_API_PORT=13303
+      - HOPRD_API_ENDPOINT=http://pluto:$${HOPRD_API_PORT}
       - HOPRD_API_TOKEN="${HOPRD_API_TOKEN}"
     ports:
       - "9003:8081" # mapping port to localhost for easier recognition
@@ -59,7 +63,8 @@ services:
       - DEBUG="${DEBUG}"
       - ENTRY_PORT=${RELAY_ENTRY_PORT}
       - USE_AUTO_PATHFINDING=${RELAY_USE_AUTO_PATHFINDING:-false}
-      - HOPRD_API_ENDPOINT="http://pluto:13304"
+      - HOPRD_API_PORT=13304
+      - HOPRD_API_ENDPOINT=http://pluto:$${HOPRD_API_PORT}
       - HOPRD_API_TOKEN="${HOPRD_API_TOKEN}"
     ports:
       - "9004:8081" # mapping port to localhost for easier recognition
@@ -69,7 +74,8 @@ services:
       - DEBUG="${DEBUG}"
       - ENTRY_PORT=${RELAY_ENTRY_PORT}
       - USE_AUTO_PATHFINDING=${RELAY_USE_AUTO_PATHFINDING:-false}
-      - HOPRD_API_ENDPOINT="http://pluto:13305"
+      - HOPRD_API_PORT=13305
+      - HOPRD_API_ENDPOINT=http://pluto:$${HOPRD_API_PORT}
       - HOPRD_API_TOKEN="${HOPRD_API_TOKEN}"
     ports:
       - "9005:8081" # mapping port to localhost for easier recognition
