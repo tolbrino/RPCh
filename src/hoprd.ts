@@ -128,7 +128,7 @@ export const createListener = (
   const ws = new WebSocket(url);
 
   ws.on("upgrade", () => {
-    console.log(
+    log(
       "HORP RPC Relay is listening for messages coming from HOPRd at",
       url
     );

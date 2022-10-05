@@ -8,7 +8,7 @@ x-relay-service: &relay
   restart: unless-stopped
   depends_on:
     - pluto
-  command: ["yarn", "run", "start"]
+  command: "env DEBUG=${DEBUG} yarn run start"
 
 services:
   pluto:
@@ -22,12 +22,10 @@ services:
       - "13301-13305:13301-13305"
       - "19501-19505:19501-19505"
     environment:
-      - DEBUG="${DEBUG}"
       - HOPRD_API_TOKEN="${HOPRD_API_TOKEN}"
   relay-1:
     <<: *relay
     environment:
-      - DEBUG="${DEBUG}"
       - ENTRY_PORT=${RELAY_ENTRY_PORT}
       - USE_AUTO_PATHFINDING=${RELAY_USE_AUTO_PATHFINDING:-false}
       - HOPRD_API_ENDPOINT=http://pluto:13301
@@ -38,7 +36,6 @@ services:
   relay-2:
     <<: *relay
     environment:
-      - DEBUG="${DEBUG}"
       - ENTRY_PORT=${RELAY_ENTRY_PORT}
       - USE_AUTO_PATHFINDING=${RELAY_USE_AUTO_PATHFINDING:-false}
       - HOPRD_API_ENDPOINT=http://pluto:13302
@@ -49,7 +46,6 @@ services:
   relay-3:
     <<: *relay
     environment:
-      - DEBUG="${DEBUG}"
       - ENTRY_PORT=${RELAY_ENTRY_PORT}
       - USE_AUTO_PATHFINDING=${RELAY_USE_AUTO_PATHFINDING:-false}
       - HOPRD_API_ENDPOINT=http://pluto:13303
@@ -60,7 +56,6 @@ services:
   relay-4:
     <<: *relay
     environment:
-      - DEBUG="${DEBUG}"
       - ENTRY_PORT=${RELAY_ENTRY_PORT}
       - USE_AUTO_PATHFINDING=${RELAY_USE_AUTO_PATHFINDING:-false}
       - HOPRD_API_ENDPOINT=http://pluto:13304
@@ -71,7 +66,6 @@ services:
   relay-5:
     <<: *relay
     environment:
-      - DEBUG="${DEBUG}"
       - ENTRY_PORT=${RELAY_ENTRY_PORT}
       - USE_AUTO_PATHFINDING=${RELAY_USE_AUTO_PATHFINDING:-false}
       - HOPRD_API_ENDPOINT=http://pluto:13305
