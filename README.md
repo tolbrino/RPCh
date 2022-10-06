@@ -80,6 +80,7 @@ http://localhost:9001/?exit-provider=https://primary.gnosis-chain.rpc.hoprtech.n
 
 RPCh is build to primarily help facilitate our upcoming hackathon and is not meant to be used in production.
 Additionally, RPCh is an application which implements novel concepts such as segmentation on-top of the HOPR protocol. In the coming future, segmentation will be handled by the HOPR protocol.
+RPCh has only been tested on Chrome.
 
 ## Architecture
 
