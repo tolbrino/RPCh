@@ -142,8 +142,8 @@ export class Manager {
   public removeExpired(): void {
     const now = new Date();
 
-    log("requests", this.requests.size);
-    log("segments", this.segments.size);
+    logVerbose("requests", this.requests.size);
+    logVerbose("segments", this.segments.size);
 
     for (const [id, entry] of this.requests.entries()) {
       log(isExpired(this.timeout, now, entry.createdAt));
