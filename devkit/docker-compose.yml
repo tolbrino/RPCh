@@ -12,7 +12,7 @@ x-relay-service: &relay
 
 services:
   pluto:
-    image: gcr.io/hoprassociation/hopr-pluto@sha256:d5e5c3279f58dbfa90e4bc6b901f5591371271994bd6293eeed4deff1c099419
+    image: gcr.io/hoprassociation/hopr-pluto:v1.90.32@sha256:fd33db04b4254971706e0a241b5309071f99374c058385f8cb16df3874b481d6
     restart: unless-stopped
     volumes:
       - pluto-data:/tmp
@@ -34,7 +34,7 @@ services:
     ports:
       - "9001:8081" # mapping port to localhost for easier recognition
     entrypoint:
-      ["/bin/wait-for", "pluto:13301", "-t", "600", "--", "/sbin/tini", "--"]
+      ["/bin/wait-for", "http://${HOPRD_API_TOKEN}@pluto:13301/api/v2/account/addresses", "-t", "600", "--", "/sbin/tini", "--"]
   relay-2:
     <<: *relay
     environment:
@@ -46,7 +46,7 @@ services:
     ports:
       - "9002:8081" # mapping port to localhost for easier recognition
     entrypoint:
-      ["/bin/wait-for", "pluto:13302", "-t", "600", "--", "/sbin/tini", "--"]
+      ["/bin/wait-for", "http://pluto:13302/api/v2/account/addresses", "-t", "600", "--", "/sbin/tini", "--"]
   relay-3:
     <<: *relay
     environment:
@@ -58,7 +58,7 @@ services:
     ports:
       - "9003:8081" # mapping port to localhost for easier recognition
     entrypoint:
-      ["/bin/wait-for", "pluto:13303", "-t", "600", "--", "/sbin/tini", "--"]
+      ["/bin/wait-for", "http://${HOPRD_API_TOKEN}@pluto:13303/api/v2/account/addresses", "-t", "600", "--", "/sbin/tini", "--"]
   relay-4:
     <<: *relay
     environment:
@@ -70,7 +70,7 @@ services:
     ports:
       - "9004:8081" # mapping port to localhost for easier recognition
     entrypoint:
-      ["/bin/wait-for", "pluto:13304", "-t", "600", "--", "/sbin/tini", "--"]
+      ["/bin/wait-for", "http://${HOPRD_API_TOKEN}@pluto:13304/api/v2/account/addresses", "-t", "600", "--", "/sbin/tini", "--"]
   relay-5:
     <<: *relay
     environment:
@@ -82,4 +82,4 @@ services:
     ports:
       - "9005:8081" # mapping port to localhost for easier recognition
     entrypoint:
-      ["/bin/wait-for", "pluto:13305", "-t", "600", "--", "/sbin/tini", "--"]
+      ["/bin/wait-for", "http://${HOPRD_API_TOKEN}@pluto:13305/api/v2/account/addresses", "-t", "600", "--", "/sbin/tini", "--"]
