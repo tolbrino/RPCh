@@ -25,7 +25,7 @@ devkit-run: ## run local docker-compose based RPCh devkit
 	cd devkit && docker-compose pull
 	docker-compose \
 		-p hopr-rpc-relay-devkit -f devkit/docker-compose.yml up \
-		--build --abort-on-container-exit --remove-orphans
+		--build --remove-orphans
 
 .PHONY: help
 help:
